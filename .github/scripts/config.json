@@ -1,6 +1,6 @@
 {
   "repo": "Tech-Internships-2026",
-  "owner": "ponder-surveys",
+  "owner": "dreamworkhq",
   "title": "Tech Internships 2026",
   "tagline": "Software engineering, data science, security, product, and design internships in the United States. Listings come straight from company career pages, so every link is a real, open posting.",
   "description": "2026–2027 tech internships in the US, updated daily. Software engineering, data science, product, and design intern roles with salaries.",
@@ -63,15 +63,15 @@
   "showAiColumn": false,
   "siblings": [
     {
-      "repo": "ponder-surveys/New-Grad-Software-Engineer-Jobs",
+      "repo": "dreamworkhq/New-Grad-Software-Engineer-Jobs",
       "label": "New Grad Software Engineer Jobs: entry-level roles for graduates"
     },
     {
-      "repo": "ponder-surveys/Remote-Tech-Jobs",
+      "repo": "dreamworkhq/Remote-Tech-Jobs",
       "label": "Remote Tech Jobs: fully remote engineering roles"
     },
     {
-      "repo": "ponder-surveys/AI-ML-Jobs",
+      "repo": "dreamworkhq/AI-ML-Jobs",
       "label": "AI and ML Jobs: AI-first roles, classified daily"
     }
   ],
@@ -86,7 +86,7 @@
     },
     {
       "q": "Graduating soon?",
-      "a": "The companion list, <a href=\"https://github.com/ponder-surveys/New-Grad-Software-Engineer-Jobs\">New Grad Software Engineer Jobs</a>, covers entry-level full-time roles with the same daily refresh."
+      "a": "The companion list, <a href=\"https://github.com/dreamworkhq/New-Grad-Software-Engineer-Jobs\">New Grad Software Engineer Jobs</a>, covers entry-level full-time roles with the same daily refresh."
     },
     {
       "q": "Can a tool apply to these for me?",
