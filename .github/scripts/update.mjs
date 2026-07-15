@@ -181,6 +181,8 @@ function companyUrl(row, config) {
 }
 
 function formatSalary(row) {
+  const source = row.salarySource?.trim().toLowerCase();
+  if (source !== "posted" && source !== "extracted") return "";
   const { salaryMin: min, salaryMax: max } = row;
   if (!min || !max || min > max) return "";
   if (min >= 15 && max <= 300) return `$${min}–$${max}/hr`;
@@ -247,9 +249,10 @@ function anchorSlug(text) {
 }
 
 /**
- * Group rows into sections by functionPrimary (count-descending, tiny
- * groups pooled into "Other"), Simplify-style, so a 300-row list stays
- * browsable. Returns { toc, body }.
+ * Group rows into sections by the configured listing field. Unlabelled tiny
+ * groups are pooled into "Other" so large, varied boards stay browsable;
+ * explicitly labelled groups are preserved because the config defines their
+ * intended information architecture. Returns { toc, body }.
  */
 function renderSections(rows, config, now) {
   if (!config.groupBy) {
@@ -257,14 +260,16 @@ function renderSections(rows, config, now) {
   }
   const groups = new Map();
   for (const row of rows) {
-    const key = row.functionPrimary || "Other";
+    const rawKey = row[config.groupBy] || "Other";
+    const key = config.groupLabels?.[rawKey] ?? rawKey;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(row);
   }
-  const named = [...groups.entries()].filter(([k, v]) => k !== "Other" && v.length >= 5);
+  const minGroupSize = config.groupLabels ? 1 : 5;
+  const named = [...groups.entries()].filter(([k, v]) => k !== "Other" && v.length >= minGroupSize);
   named.sort((a, b) => b[1].length - a[1].length);
   const leftovers = [...groups.entries()]
-    .filter(([k, v]) => k === "Other" || v.length < 5)
+    .filter(([k, v]) => k === "Other" || v.length < minGroupSize)
     .flatMap(([, v]) => v)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const sections = [...named];
@@ -290,10 +295,11 @@ function renderReadme(rows, config, now) {
     rows.length >= (config.usOpenTotal ?? rows.length)
       ? `All **${rows.length}** currently open roles are listed.`
       : `The **${rows.length}** newest of **${config.usOpenTotal}** currently open roles are listed (GitHub caps how much of a page it renders).`;
+  const totalMatchingLabel = `${(config.totalMatching ?? 0).toLocaleString("en-US")}${config.totalMatchingCapped ? "+" : ""}`;
   const statsLine =
     config.mode === "inventory"
       ? `Last updated: **${updated}**. ${inventoryScope} The crawler rechecks every listing daily, so closed roles drop off automatically. Salary shows when the posting discloses it. Click a role to see details and apply.`
-      : `Last updated: **${updated}**. Showing the **${rows.length}** most recently indexed roles, curated from **${(config.totalMatching ?? 0).toLocaleString("en-US")}** open listings on Dreamwork. Salary shows when the posting discloses it. Click a role to see details and apply.`;
+      : `Last updated: **${updated}**. Showing the **${rows.length}** most recently indexed roles, curated from **${totalMatchingLabel}** open listings on Dreamwork. Salary shows when the posting discloses it. Click a role to see details and apply.`;
   const intlLine = config.intlCount
     ? `\nHiring outside the US? **${config.intlCount}** international roles are listed separately in [INTERNATIONAL.md](INTERNATIONAL.md).\n`
     : "";
@@ -448,6 +454,7 @@ const now = new Date();
 
 let all = [];
 let totalMatching = 0;
+let totalMatchingCapped = false;
 for (const source of config.sources) {
   const params = new URLSearchParams({ limit: "1" });
   for (const [k, v] of Object.entries(source)) {
@@ -455,9 +462,11 @@ for (const source of config.sources) {
   }
   const head = await fetchJson(`${API_BASE}/listings?${params}`);
   totalMatching += head.total ?? 0;
+  totalMatchingCapped ||= head.totalCapped === true;
   all = all.concat(await fetchSource(source, config));
 }
 config.totalMatching = totalMatching;
+config.totalMatchingCapped = totalMatchingCapped;
 
 // Partition and pick the display set.
 // inventory mode: every verified-open matching role (US in README,
